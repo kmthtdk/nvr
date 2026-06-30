@@ -34,12 +34,13 @@ Target: Windows 10/11, 64-bit (x64).
   at logon/startup (the bundle does not install a Windows service).
 
 ------------------------------------------------------------
- UPDATING from an older version (keeps your NVRs + login)
+ UPDATING the running install (keeps your NVRs + login)
 ------------------------------------------------------------
-- Unzip the new version to a NEW folder (e.g. C:\nvr-dashboard-v1.1.2).
-- Run update.bat there and enter your current install path (e.g. C:\nvr-dashboard).
-  It copies your database (NVRs + admin login) and config.txt (SERVER_IP).
-- Stop the old version (old stop.bat), then run start.bat in the new folder.
+- Copy the new version zip to this PC and unzip it anywhere (e.g. Downloads).
+- In the unzipped folder run:   update.bat  C:\nvr-dashboard
+  (use your actual install path). It updates that install IN PLACE:
+  stop -> backup (for rollback) -> swap new code -> keep database + SERVER_IP
+  -> restart. Then log in again (session reset); your NVRs are preserved.
 - Full details + rollback: docs\UPDATE.md.  How to use the app: docs\USAGE.md.
 
 ------------------------------------------------------------

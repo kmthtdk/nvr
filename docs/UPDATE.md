@@ -18,37 +18,47 @@ one and carrying over the data — the old folder stays intact for instant rollb
 You will need to **log in again** after the restart (the session key is
 regenerated) — your username/password are unchanged.
 
-## Update steps
+## Update steps (in-place — recommended)
+
+`update.bat` updates your existing install **in place** (same folder, e.g.
+`C:\nvr-dashboard`). It stops the service, makes a full timestamped backup,
+swaps in the new code, keeps your database + `config.txt`, and restarts.
 
 1. **Copy the new zip to the Production PC** (USB), e.g.
-   `nvr-dashboard-prod-v1.1.2+<hash>.zip`.
-2. **Unzip to a NEW folder** — a different name from the current one, e.g.
-   `C:\nvr-dashboard-v1.1.2` (do not overwrite the old folder).
-3. **Run `update.bat`** in the new folder. When asked, enter the path to your
-   current install (e.g. `C:\nvr-dashboard`). It copies your database and
-   `config.txt` into the new folder. (Or run: `update.bat C:\nvr-dashboard`.)
-4. **Stop the old version:** run `stop.bat` in the old folder.
-5. **Start the new version:** run `start.bat` in the new folder.
-6. **Verify:** open `http://<SERVER_IP>:3001`, log in, confirm the **version in the
-   sidebar** is the new one (also in `VERSION.txt` / `GET /api/health`). Your NVRs
-   should already be listed.
+   `nvr-dashboard-prod-v1.1.x+<hash>.zip`.
+2. **Unzip it anywhere** (e.g. `C:\Users\you\Downloads\nvr-new`) — this is just
+   the source of the new files, not the install.
+3. **Run `update.bat`** from that unzipped folder and give it the install path:
+   ```
+   update.bat C:\nvr-dashboard
+   ```
+   (or run `update.bat` and type the path when asked.) It will:
+   stop → back up to `C:\nvr-dashboard-backup-<timestamp>` → apply new code →
+   restart.
+4. **Verify:** open `http://<SERVER_IP>:3001`, **log in again** (session reset),
+   confirm the **version in the sidebar** is the new one (also `VERSION.txt` /
+   `GET /api/health`). Your NVRs are already listed.
 
-The database schema upgrades automatically on first start (e.g. the new
+The database schema upgrades automatically on first start (e.g. the
 `stream_profile` column) — existing NVRs are not affected.
 
 ## Manual update (without update.bat)
 
-If you prefer to do it by hand, after unzipping the new folder:
-- Copy `OLD\backend\data\`  → `NEW\backend\data\`   (the database)
-- Copy `OLD\config.txt`     → `NEW\config.txt`      (SERVER_IP)
-- Leave the NEW `backend\.env` as-is.
-Then stop old `stop.bat`, start new `start.bat`.
+With the service stopped (`stop.bat`), after unzipping the new bundle:
+- Back up the whole current install folder somewhere safe.
+- Copy `CURRENT\backend\data\` and `CURRENT\config.txt` into the new bundle.
+- Replace the current folder's contents with the new bundle's contents.
+- Run `start.bat`.
 
 ## Rollback
 
-The old folder is untouched. To roll back: stop the new version (`stop.bat`),
-start the old version (`start.bat`). If you had registered new NVRs on the new
-version and want them in the old DB too, copy `NEW\backend\data\` back first.
+`update.bat` leaves a full backup at `<install>-backup-<timestamp>`. To roll back:
+1. Stop the service (`stop.bat`).
+2. Delete (or rename) the updated install folder.
+3. Rename the backup folder back to the original install name.
+4. Run its `start.bat`.
+
+Delete old `*-backup-*` folders once the new version is confirmed working.
 
 ## After updating — H.265 cameras (QND-8011 etc.)
 
