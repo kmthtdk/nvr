@@ -78,6 +78,7 @@ Set-Content -Path (Join-Path $bBe '.env') -Value $envText -Encoding ASCII -NoNew
 Write-Host '== Copy launch scripts + config + docs ==' -ForegroundColor Cyan
 Copy-Item (Join-Path $Root 'deploy\start.bat')  $Bundle
 Copy-Item (Join-Path $Root 'deploy\stop.bat')   $Bundle
+Copy-Item (Join-Path $Root 'deploy\update.bat') $Bundle
 Copy-Item (Join-Path $Root 'deploy\config.txt') $Bundle
 Copy-Item (Join-Path $Root 'deploy\README.txt') $Bundle
 
