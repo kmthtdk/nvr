@@ -150,9 +150,11 @@ export function useWebRTC({ webrtcUrl, hlsFallbackUrl }: UseWebRTCOptions): UseW
     abortRef.current = abort;
 
     try {
-      const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      });
+      // No STUN/TURN: this is an isolated LAN (airgap). WebRTC connects directly
+      // via host candidates (the browser's LAN IP + go2rtc's advertised LAN IP),
+      // so the client never contacts any external server. Add an ICE server here
+      // only if this is ever deployed across NAT/the internet.
+      const pc = new RTCPeerConnection({ iceServers: [] });
       pcRef.current = pc;
 
       // Receive remote video track

@@ -42,7 +42,12 @@ rtsp:
 webrtc:
   listen: ":8555/tcp"          # media transport; reachable by viewers' browsers
   candidates:
-    - stun:8555/udp  # Use STUN for NAT traversal; add a public host:port for remote clients
+    # Advertise this server's LAN IP for WebRTC media. Use a fixed host:port so
+    # go2rtc never contacts an external STUN server (important on airgap LANs).
+    # Replace with the server's actual LAN IP, e.g. "192.168.1.50:8555".
+    - 127.0.0.1:8555
+    # For internet/NAT deployments only, you may instead use: stun:8555  (this
+    # reaches an external STUN server — do NOT use on an airgapped network).
 
 # Streams are added dynamically by the backend.
 # Uncomment below for static test streams:
