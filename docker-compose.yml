@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # ── go2rtc Media Proxy ─────────────────────────────────
+  # Handles RTSP → WebRTC/HLS transcoding
+  go2rtc:
+    image: alexxit/go2rtc:latest
+    container_name: nvr-go2rtc
+    restart: unless-stopped
+    # SECURITY: go2rtc.yaml binds the API/RTSP to 127.0.0.1, so :1984/:8554 are
+    # NOT reachable on the LAN even under host networking. Do NOT add a reverse
+    # proxy that forwards :1984 management endpoints to clients — the API is
+    # unauthenticated and supports `exec:` (RCE). Front it with docs/nginx-go2rtc.conf.
+    # Under `network_mode: host` the `ports:` map below is a no-op; the only
+    # externally reachable port is the WebRTC media transport :8555.
+    ports:
+      - "8555:8555/tcp" # WebRTC TCP (media transport)
+      - "8555:8555/udp" # WebRTC UDP (media transport)
+    volumes:
+      - ./go2rtc.yaml:/config/go2rtc.yaml:ro
+    environment:
+      - TZ=Asia/Seoul
+    network_mode: host  # Required for WebRTC UDP hole-punching
+
+  # ── Backend API Server ─────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nvr-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - backend_data:/app/data
+    env_file:
+      - .env
+    environment:
+      - GO2RTC_API_URL=http://localhost:1984
+      - DATABASE_PATH=/app/data/nvr-dashboard.db
+    depends_on:
+      - go2rtc
+    network_mode: host
+
+  # ── Frontend (dev only) ────────────────────────────────
+  # For production, build frontend and serve static files via nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nvr-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:
+    driver: local

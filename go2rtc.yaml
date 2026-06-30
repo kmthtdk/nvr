@@ -1,0 +1,53 @@
+# go2rtc configuration for NVR Dashboard
+# Streams are managed dynamically via the API - this file provides defaults.
+#
+# Dynamic stream management:
+#   The Node.js backend adds/removes streams via PUT/DELETE to /api/streams
+#   when NVR devices are registered or removed.
+#
+# Manual stream example (for testing):
+#   streams:
+#     test_cam:
+#       - rtsp://admin:password@192.168.1.100:554/LiveChannel/01/media.smp
+
+# ──────────────────────────────────────────────────────────────────────────
+# SECURITY (read before exposing this service):
+# go2rtc's REST API has NO per-endpoint auth and supports `exec:` sources, which
+# spawn arbitrary processes. An open :1984 = remote code execution + theft of all
+# NVR RTSP credentials. Therefore:
+#   - The API binds to LOOPBACK only (127.0.0.1). The backend reaches it locally.
+#   - Browsers must NOT hit :1984 directly in production — front it with an
+#     authenticated reverse proxy that exposes only read endpoints and blocks
+#     PUT/DELETE /api/streams. See docs/nginx-go2rtc.conf and docs/RUNNING.md.
+#   - On Windows bare-metal, also set `ffmpeg.bin` (see docs/RUNNING.md).
+# ──────────────────────────────────────────────────────────────────────────
+
+log:
+  level: info
+
+api:
+  # LOOPBACK BIND is the real security boundary — it makes :1984 (and its
+  # unauthenticated management/exec API) unreachable from the LAN. Keep it.
+  listen: "127.0.0.1:1984"
+  # NOTE: go2rtc only emits CORS headers when origin is "*"; a specific value
+  # disables CORS and breaks browser-direct access. "*" is acceptable ONLY
+  # because the API is loopback-bound: in dev the same-host browser reaches it
+  # directly; in production the browser talks to the reverse proxy (same-origin,
+  # so CORS is irrelevant) and never reaches :1984. Do NOT expose :1984 with "*".
+  origin: "*"
+
+rtsp:
+  listen: "127.0.0.1:8554"     # internal RTSP pulls only
+
+webrtc:
+  listen: ":8555/tcp"          # media transport; reachable by viewers' browsers
+  candidates:
+    - stun:8555/udp  # Use STUN for NAT traversal; add a public host:port for remote clients
+
+# Streams are added dynamically by the backend.
+# Uncomment below for static test streams:
+# streams:
+#   demo_cam_1:
+#     - rtsp://admin:pass@192.168.1.100:554/LiveChannel/01/media.smp
+#   demo_cam_2:
+#     - rtsp://admin:pass@192.168.1.100:554/LiveChannel/02/media.smp

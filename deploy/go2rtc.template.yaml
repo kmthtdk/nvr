@@ -1,0 +1,27 @@
+# go2rtc production config — generated from this template by start.bat
+# (__SERVER_IP__ is replaced with the Production PC's LAN IP at launch).
+#
+# LAN mode: the API/WebRTC bind to all interfaces so operator workstations can
+# reach this server. NOTE: go2rtc's API is unauthenticated and supports exec:
+# sources — acceptable ONLY on this isolated airgap LAN. For defense in depth,
+# front it with docs/nginx-go2rtc.conf and restrict who can reach :1984.
+
+log:
+  level: info
+
+ffmpeg:
+  bin: ffmpeg          # resolved via PATH; start.bat puts the bundled ffmpeg there
+
+api:
+  listen: ":1984"      # LAN-reachable so browsers on other PCs can play streams
+  origin: "*"          # go2rtc only emits CORS headers when origin is "*"
+
+rtsp:
+  listen: "127.0.0.1:8554"   # internal only
+
+webrtc:
+  listen: ":8555/tcp"
+  candidates:
+    - __SERVER_IP__:8555       # advertise this server's LAN IP for WebRTC media
+
+# Streams are added dynamically by the backend when NVRs are registered.

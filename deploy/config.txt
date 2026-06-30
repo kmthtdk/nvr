@@ -1,0 +1,6 @@
+# NVR Dashboard — deployment config
+#
+# SERVER_IP: the Production PC's LAN IPv4 address that operator workstations use
+# to reach this server. Leave blank to auto-detect the primary adapter.
+# Example:  SERVER_IP=192.168.1.50
+SERVER_IP=
