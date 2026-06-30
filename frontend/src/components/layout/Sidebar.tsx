@@ -33,7 +33,7 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="text-sm font-bold tracking-tight">NVR Dashboard</h1>
-          <p className="text-[10px] text-[var(--color-text-dim)]">Hanwha VMS</p>
+          <p className="text-[10px] text-[var(--color-text-dim)]">Hanwha VMS · v{__APP_VERSION__}</p>
         </div>
       </div>
 

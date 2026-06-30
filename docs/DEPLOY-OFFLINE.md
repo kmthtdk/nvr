@@ -18,9 +18,13 @@ powershell -ExecutionPolicy Bypass -File scripts\build-release.ps1
 
 Output (gitignored):
 - `release\nvr-dashboard-prod\` — the bundle folder
-- `release\nvr-dashboard-prod.zip` — copy this to the Production PC (~97 MB)
+- `release\nvr-dashboard-prod-v<version>.zip` — copy this to the Production PC
+  (~97 MB). The filename carries the version (package.json version + git short
+  hash); the bundle also includes `VERSION.txt` and a version banner in
+  `README.txt`, and the running app shows the version in the sidebar and at
+  `GET /api/health`.
 
-The script prints the generated admin password (also written to
+The script prints the version and the generated admin password (also written to
 `backend\.env` inside the bundle).
 
 ## Bundle layout

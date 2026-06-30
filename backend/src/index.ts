@@ -16,6 +16,17 @@ import authRoutes from './routes/auth.routes.js';
 import nvrRoutes from './routes/nvr.routes.js';
 import streamRoutes from './routes/stream.routes.js';
 
+// App version (read from package.json) so the running server can self-report it.
+function readAppVersion(): string {
+  try {
+    const raw = fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8');
+    return (JSON.parse(raw).version as string) ?? 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+const APP_VERSION = readAppVersion();
+
 async function bootstrap(): Promise<void> {
   // ── Database ────────────────────────────────────────────
   initializeDatabase();
@@ -72,6 +83,7 @@ async function bootstrap(): Promise<void> {
       success: true,
       data: {
         status: 'ok',
+        version: APP_VERSION,
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
       },
@@ -105,7 +117,7 @@ async function bootstrap(): Promise<void> {
 
   // ── Start Server ────────────────────────────────────────
   app.listen(env.PORT, () => {
-    logger.info(`NVR Dashboard API running on port ${env.PORT}`);
+    logger.info(`NVR Dashboard API v${APP_VERSION} running on port ${env.PORT}`);
     logger.info(`Environment: ${env.NODE_ENV}`);
     logger.info(`go2rtc endpoint: ${env.GO2RTC_API_URL}`);
   });

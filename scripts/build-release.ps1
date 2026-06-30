@@ -13,6 +13,14 @@ $Go2rtcDir = 'C:\tools\go2rtc'
 $OutRoot   = Join-Path $Root 'release'
 $Bundle    = Join-Path $OutRoot 'nvr-dashboard-prod'
 
+# ── Version stamp: package.json version + git short hash + build date ──
+$PkgVersion = (Get-Content (Join-Path $Root 'package.json') -Raw | ConvertFrom-Json).version
+$GitHash = (& git -C $Root rev-parse --short HEAD 2>$null)
+if (-not $GitHash) { $GitHash = 'nogit' }
+$BuildDate = Get-Date -Format 'yyyy-MM-dd HH:mm'
+$FullVersion = "v$PkgVersion+$GitHash"
+Write-Host "== Version: $FullVersion ($BuildDate) ==" -ForegroundColor Yellow
+
 function Assert-Path($p, $what) { if (-not (Test-Path $p)) { throw "Missing $what`: $p" } }
 
 Write-Host '== Preflight ==' -ForegroundColor Cyan
@@ -72,6 +80,13 @@ Copy-Item (Join-Path $Root 'deploy\start.bat')  $Bundle
 Copy-Item (Join-Path $Root 'deploy\stop.bat')   $Bundle
 Copy-Item (Join-Path $Root 'deploy\config.txt') $Bundle
 Copy-Item (Join-Path $Root 'deploy\README.txt') $Bundle
+
+# ── Stamp version into the release ──
+$verText = "NVR Dashboard`r`nVersion : $FullVersion`r`nBuilt   : $BuildDate`r`n"
+Set-Content -Path (Join-Path $Bundle 'VERSION.txt') -Value $verText -Encoding ASCII
+# Prepend a version banner to the bundled README
+$readme = Get-Content (Join-Path $Bundle 'README.txt') -Raw
+Set-Content -Path (Join-Path $Bundle 'README.txt') -Value ("NVR Dashboard $FullVersion  (built $BuildDate)`r`n`r`n" + $readme) -Encoding ASCII
 $bDocs = Join-Path $Bundle 'docs'
 New-Item -ItemType Directory -Force -Path $bDocs | Out-Null
 # Bundle ALL project docs so the airgapped Production PC has the full reference
@@ -82,13 +97,15 @@ Copy-Item (Join-Path $Root 'docs\*') $bDocs -Recurse -Force -ErrorAction Silentl
 New-Item -ItemType Directory -Force -Path (Join-Path $bBe 'data') | Out-Null
 
 Write-Host '== Zip ==' -ForegroundColor Cyan
-$Zip = Join-Path $OutRoot 'nvr-dashboard-prod.zip'
-if (Test-Path $Zip) { Remove-Item -Force $Zip }
+$Zip = Join-Path $OutRoot "nvr-dashboard-prod-$FullVersion.zip"
+# Remove older versioned zips so the release folder shows only the current build
+Get-ChildItem $OutRoot -Filter 'nvr-dashboard-prod*.zip' -ErrorAction SilentlyContinue | Remove-Item -Force
 Compress-Archive -Path $Bundle -DestinationPath $Zip
 
 $sizeMB = [math]::Round(((Get-ChildItem -Recurse $Bundle | Measure-Object Length -Sum).Sum / 1MB), 0)
 Write-Host ''
 Write-Host "== DONE ==" -ForegroundColor Green
+Write-Host "  Version: $FullVersion  (built $BuildDate)"
 Write-Host "  Bundle : $Bundle  (~$sizeMB MB)"
 Write-Host "  Zip    : $Zip"
 Write-Host "  Admin password (also in backend\.env): $pw"
