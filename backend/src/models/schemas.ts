@@ -35,6 +35,11 @@ export const createNvrSchema = z.object({
   password: z.string().min(1).max(255),
   model: z.string().default('XRN-1620SB1'),
   max_channels: z.number().int().min(1).max(128).default(16),
+  // Optional Hanwha RTSP profile for the grid (sub-stream). Leave unset to use the
+  // channel's default (main) profile. Set to the H.264 sub-stream profile number
+  // (often 2 or 3 — varies by camera config) when the main stream is H.265, which
+  // browsers can't play over WebRTC/HLS. URL becomes …/media.smp/profile=<n>.
+  stream_profile: z.number().int().min(1).max(20).nullable().optional(),
 });
 
 export const updateNvrSchema = createNvrSchema.partial();
@@ -108,6 +113,7 @@ export interface NvrDeviceRow {
   password: string;
   model: string;
   max_channels: number;
+  stream_profile: number | null;
   status: 'online' | 'offline' | 'error';
   last_checked_at: string | null;
   created_at: string;

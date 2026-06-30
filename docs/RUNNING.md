@@ -140,10 +140,18 @@ The scaffold targets **Hanwha XRN-1620SB1** but the exact RTSP path and codec
 - **RTSP path** (`HanwhaService.buildRtspUrl`): assumes
   `rtsp://user:pass@ip:554/LiveChannel/<2-digit>/media.smp`, 1-indexed channels.
   Wisenet URL format and channel indexing vary by model/firmware.
-- **Codec**: Hanwha cameras often emit **H.265/HEVC**, which WebRTC cannot carry —
-  go2rtc must transcode to H.264 via ffmpeg = heavy CPU **per stream** (16
-  transcodes on a 4×4 wall). If H.265, register the camera **sub-stream**
-  (lower-res secondary profile) for the grid instead.
+- **Codec (common gotcha)**: Hanwha cameras (e.g. QND-8011) often default the main
+  stream to **H.265/HEVC**, which browsers **cannot play** over WebRTC or HLS — the
+  dashboard shows "Stream unavailable" even though the NVR's own monitor (hardware
+  H.265 decode) shows it fine. **Fix: use the H.264 sub-stream for the grid.** In
+  Device Manager → Add/Edit NVR, set **"Live grid stream profile"** to the camera's
+  H.264 sub-stream profile number (Hanwha RTSP `…/media.smp/profile=<N>`; try 2 or 3
+  — the exact number depends on the camera's profile config). Leave it blank to use
+  the main stream. This keeps H.265 for recording and is far lighter than
+  transcoding hundreds of streams.
+  - If some cameras fail only when many are open at once (not the same cameras every
+    time), it's the NVR's **max concurrent RTSP clients** limit instead — raise it in
+    the NVR settings and/or use sub-streams to cut load.
 - **Reachability (dual network)**: each NVR has a camera-side LAN and a user-side
   network. The app only needs the **user-side** IP — the camera LAN stays
   invisible, and the architecture already handles this correctly. The go2rtc

@@ -18,6 +18,7 @@ export function NVRForm({ nvr, onSubmit, onClose }: NVRFormProps) {
     password: '',
     model: nvr?.model ?? 'XRN-1620SB1',
     max_channels: nvr?.max_channels ?? 16,
+    stream_profile: nvr?.stream_profile ?? undefined,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -166,6 +167,31 @@ export function NVRForm({ nvr, onSubmit, onClose }: NVRFormProps) {
                 max={128}
                 className="w-full px-3 py-2 text-sm bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]/30 transition-colors"
               />
+            </div>
+
+            {/* Stream profile (sub-stream for the live grid) */}
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1">
+                Live grid stream profile (optional)
+              </label>
+              <input
+                type="number"
+                value={formData.stream_profile ?? ''}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    stream_profile: e.target.value === '' ? undefined : parseInt(e.target.value, 10),
+                  }))
+                }
+                placeholder="blank = main stream • e.g. 2 or 3 for H.264 sub-stream"
+                min={1}
+                max={20}
+                className="w-full px-3 py-2 text-sm bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)]/30 transition-colors"
+              />
+              <p className="mt-1 text-[10px] text-[var(--color-text-dim)]">
+                If cameras are H.265 (won't play in browser), set the H.264 sub-stream
+                profile number (RTSP …/media.smp/profile=N). Try 2 or 3.
+              </p>
             </div>
 
             {/* Username */}

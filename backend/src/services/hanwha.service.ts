@@ -203,7 +203,10 @@ export class HanwhaService {
   static buildRtspUrl(nvr: NvrDeviceRow, channel: number): string {
     const encodedUser = encodeURIComponent(nvr.username);
     const encodedPass = encodeURIComponent(nvr.password);
-    return `rtsp://${encodedUser}:${encodedPass}@${nvr.ip}:${nvr.rtsp_port}/LiveChannel/${String(channel).padStart(2, '0')}/media.smp`;
+    // Append the Hanwha profile selector for the sub-stream when configured.
+    // Default (unset) uses the channel's main profile (current behaviour).
+    const profile = nvr.stream_profile ? `/profile=${nvr.stream_profile}` : '';
+    return `rtsp://${encodedUser}:${encodedPass}@${nvr.ip}:${nvr.rtsp_port}/LiveChannel/${String(channel).padStart(2, '0')}/media.smp${profile}`;
   }
 
   /**

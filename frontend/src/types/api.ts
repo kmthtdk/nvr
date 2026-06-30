@@ -21,6 +21,7 @@ export interface NvrDevice {
   rtsp_port: number;
   model: string;
   max_channels: number;
+  stream_profile: number | null;
   status: 'online' | 'offline' | 'error';
   last_checked_at: string | null;
   created_at: string;
@@ -36,6 +37,7 @@ export interface CreateNvrInput {
   password: string;
   model?: string;
   max_channels?: number;
+  stream_profile?: number | null;
 }
 
 // ── Camera ──────────────────────────────────────────────

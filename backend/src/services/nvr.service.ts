@@ -27,8 +27,8 @@ export class NvrService {
 
   static create(input: CreateNvrInput): NvrDeviceRow {
     const stmt = db.prepare(`
-      INSERT INTO nvr_devices (name, ip, http_port, rtsp_port, username, password, model, max_channels)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO nvr_devices (name, ip, http_port, rtsp_port, username, password, model, max_channels, stream_profile)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -40,6 +40,7 @@ export class NvrService {
       input.password,
       input.model,
       input.max_channels,
+      input.stream_profile ?? null,
     );
 
     const nvr = this.findById(result.lastInsertRowid as number)!;
@@ -56,7 +57,7 @@ export class NvrService {
     db.prepare(`
       UPDATE nvr_devices
       SET name = ?, ip = ?, http_port = ?, rtsp_port = ?, username = ?,
-          password = ?, model = ?, max_channels = ?, updated_at = ?
+          password = ?, model = ?, max_channels = ?, stream_profile = ?, updated_at = ?
       WHERE id = ?
     `).run(
       merged.name,
@@ -67,6 +68,7 @@ export class NvrService {
       merged.password,
       merged.model,
       merged.max_channels,
+      merged.stream_profile ?? null,
       merged.updated_at,
       id,
     );

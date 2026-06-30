@@ -29,6 +29,7 @@ export function initializeDatabase(): void {
       password TEXT NOT NULL,
       model TEXT DEFAULT 'XRN-1620SB1',
       max_channels INTEGER DEFAULT 16,
+      stream_profile INTEGER,
       status TEXT CHECK(status IN ('online', 'offline', 'error')) DEFAULT 'offline',
       last_checked_at TEXT,
       created_at TEXT DEFAULT (datetime('now')),
@@ -77,7 +78,20 @@ export function initializeDatabase(): void {
     CREATE INDEX IF NOT EXISTS idx_sessions_camera ON stream_sessions(camera_id);
   `);
 
+  runMigrations();
   logger.info('Database schema initialized');
+}
+
+/**
+ * Idempotent column migrations for DBs created before a column existed
+ * (CREATE TABLE IF NOT EXISTS does not add columns to an existing table).
+ */
+function runMigrations(): void {
+  const cols = db.prepare('PRAGMA table_info(nvr_devices)').all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === 'stream_profile')) {
+    db.exec('ALTER TABLE nvr_devices ADD COLUMN stream_profile INTEGER');
+    logger.info('Migration: added nvr_devices.stream_profile');
+  }
 }
 
 export default db;
